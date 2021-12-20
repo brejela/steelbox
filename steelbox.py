@@ -1,7 +1,7 @@
 import csv
 import curses
 from curses import wrapper
-from curses.textpad import Textbox, rectangle
+from curses.textpad import Textbox
 import sys
 
 
@@ -16,16 +16,15 @@ files = []
 fields = ["service", "user", "pswd"]
 
 # Password file
-PASFILE="pastest.csv"
+PASFILE="pasfile.csv"
 
 
 # Initializes Curses' screen
 def main(stdscr):
     # Opens password file
-    with open(PASFILE, mode='r+') as pasfile:    
+    with open(PASFILE, mode='r') as pasfile:    
         # Creates reader and writer objects
         csvreader=csv.DictReader(pasfile)
-        csvwriter=csv.DictWriter(pasfile, fields)
         for ids in csvreader:
             files.append(ids)
     ## Initializes color pairs
@@ -99,6 +98,13 @@ def main(stdscr):
     while True:
         # Creates a name list
         displayList = []
+
+        # This makes sure the cursor stays on the screen
+        if ITEM_CURSOR < 0: ITEM_CURSOR = 0
+        if ITEM_CURSOR > MAX_ITEMS or ITEM_CURSOR > len(files)-1: ITEM_CURSOR = 0
+        if CURR_PAGE < 1: CURR_PAGE = 1
+        if CURR_PAGE > MAX_PAGES: CURR_PAGE = MAX_PAGES
+
         # Makes sure the windows are properly clean
         mainwin.clear()
         statusWin.clear()
@@ -150,17 +156,18 @@ def main(stdscr):
             ITEM_CURSOR-=1
             GLOBAL_CURSOR-=1
         elif c == curses.KEY_RIGHT:
-            ITEM_CURSOR+=MAX_LINES
-            GLOBAL_CURSOR+=MAX_LINES
+            ITEM_CURSOR+=MAX_LINES - 1
+            GLOBAL_CURSOR+=MAX_LINES - 1
         elif c == curses.KEY_LEFT:
-            ITEM_CURSOR-=MAX_LINES
-            GLOBAL_CURSOR-=MAX_LINES
+            ITEM_CURSOR-=MAX_LINES - 1
+            GLOBAL_CURSOR-=MAX_LINES - 1
         elif c == curses.KEY_F1 or c == curses.KEY_PPAGE:
             CURR_PAGE-=1
             GLOBAL_CURSOR-=MAX_ITEMS
         elif c == curses.KEY_F2 or c == curses.KEY_NPAGE:
             CURR_PAGE+=1
             GLOBAL_CURSOR+=MAX_ITEMS
+        
         # For some reason, KEY_UP is 10, instead of the 343 the debbuger flags... Welp ¯\_(ツ)_/¯
         elif c == 10 or c == curses.KEY_ENTER or c == ord('e'):
             # highOpt = Coordinates of the first option's character
@@ -173,60 +180,76 @@ def main(stdscr):
                 LINE-=10
             # Initializes the file viewer window
             fileWin = curses.newwin(5, 40, LINE+5, COLUMN)
+            # Clears the window
             fileWin.clear()
             fileWin.border()
-            passService = files[GLOBAL_CURSOR]['service'][:15]
-            passUser = files[GLOBAL_CURSOR]['user'][:32]
-            passPswd = files[GLOBAL_CURSOR]['pswd'][:32]
+
+            passService = files[GLOBAL_CURSOR]['service'][:45]
+            passUser = files[GLOBAL_CURSOR]['user'][:45]
+            passPswd = files[GLOBAL_CURSOR]['pswd'][:45]
+            fileWin.addstr(0, 1, "View Password")
             fileWin.addstr(1, 1, "SRVC: " + passService)
             fileWin.addstr(2, 1, "NAME: " + passUser)
             fileWin.addstr(3, 1, "PSWD: " + passPswd)
             fileWin.refresh()
-            fileWin.getch()
+            # Gets command to act on the highlighted file
+            c = fileWin.getch()
+            if c == ord('d'):
+                dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
+                dlWin.border()
+                dlWin.refresh()
+                dlWin.addstr(1, 1, "Are you sure? (y/N)")
+                c = dlWin.getch()
+                if c == ord('y'):
+                    files.pop(GLOBAL_CURSOR)
+                    with open(PASFILE, mode='r+') as pasfile:
+                        csvwriter = csv.DictWriter(pasfile, fields)
+                        csvwriter.writeheader()
+                        csvwriter.writerows(files)
+
+            
+
         elif c == ord('n'):
-            npWin = curses.newwin(4, 52,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
+            # Initializes the 'new password' window
+            npWin = curses.newwin(5, 52,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
+            nwCord = npWin.getbegyx()
+            # Initializes the windows in which the textboxes will reside for input
+            svWin = curses.newwin(1, 45, nwCord[0]+1, nwCord[1]+6)
+            svBox = Textbox(svWin)
+            usWin = curses.newwin(1, 45, nwCord[0]+2, nwCord[1]+6)
+            usBox = Textbox(usWin)
+            psWin = curses.newwin(1, 45, nwCord[0]+3, nwCord[1]+6)
+            psBox = Textbox(psWin)
+            
+            # Clears the 'new password' window
             npWin.clear()
             npWin.border()
-            curses.echo(True)
+
+            npWin.addstr(0, 1, "New password")
             npWin.addstr(1, 1, "SRVC:")
             npWin.addstr(2, 1, "USER:")
             npWin.addstr(3, 1, "PSWD:")
-            passService = npWin.getstr(1, 6, 16)
-            passUser = npWin.getstr(2, 6, 32)
-            passPswd = npWin.getstr(3, 6, 32)
-            # wtf = write to file
+            STATUS_MESSAGE = "CTRL+G to enter, Leave any empty to cancel, MAX 45 CHARS"
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
+            npWin.refresh()
 
-            ## TODO: solve this shit with curses.textpad.Textbox()
-            wtf = {'service':passService[2:], 'user':passUser[2:], 'pswd':passPswd[2:]}
-            filesOld = files
-            files.clear()
-            files.append(filesOld)
-            files.append(wtf)
-            with open(PASFILE, mode='r+') as pasfile:
-                csvwriter=csv.DictWriter(pasfile, fields)
-                csvwriter.writeheader()
-                csvwriter.writerow(files)
-            # Reopens the file
-            pasfile.close()
-            with open(PASFILE, mode='r+') as pasfile:    
-                # Creates reader and writer objects
-                csvreader=csv.DictReader(pasfile)
-                csvwriter=csv.DictWriter(pasfile, fields)
-                for ids in csvreader:
-                    files.append(ids)
+            # Takes data
+            svBox.edit()
+            passService = svBox.gather()
+            usBox.edit()
+            passUser = usBox.gather()
+            psBox.edit()
+            passPswd = psBox.gather()
 
-
-
-
-
-
-
-
-        
-
-    mainwin.refresh()
-    mainwin.getch()
-    
+            if passService is not '' and passUser is not '' and passPswd is not '':
+                # wtf = write to file
+                wtf = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
+                files.append(wtf)
+                with open(PASFILE, mode='r+') as pasfile:
+                    csvwriter = csv.DictWriter(pasfile, fields)
+                    csvwriter.writeheader()
+                    csvwriter.writerows(files)    
 
 def close():
     # This makes sure the terminal gets completely "free of curses" when the application ends
