@@ -3,7 +3,8 @@ import curses
 from curses import wrapper
 from curses.textpad import Textbox
 import sys
-
+import os
+version = sys.argv[1]
 
 ## Initialization of bottomline dependencies
 
@@ -16,7 +17,8 @@ files = []
 fields = ["service", "user", "pswd"]
 
 # Password file
-PASFILE="pasfile.csv"
+HOMEDIR = os.environ['HOME']
+PASFILE=HOMEDIR+"/.pasfile.csv"
 
 
 # Initializes Curses' screen
@@ -115,6 +117,7 @@ def main(stdscr):
         mainwin.clear()
         statusWin.clear()
         mainwin.border()
+        mainwin.addstr(0, 1, "SteelBox V" + str(version))
         mainwin.refresh()
         statusWin.border()
         statusWin.refresh()
@@ -207,13 +210,21 @@ def main(stdscr):
             fileWin.addstr(1, 1, "SRVC: " + passService)
             fileWin.addstr(2, 1, "NAME: " + passUser)
             fileWin.addstr(3, 1, "PSWD: " + passPswd)
+            statusWin.clear()
+            STATUS_MESSAGE = "cmds:(d|DEL)ete "
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
             fileWin.refresh()
             # Gets command to act on the highlighted file
             c = fileWin.getch()
-            if c == ord('d'):
+            if c == ord('d') or c == curses.KEY_DC:
                 dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
                 dlWin.border()
                 dlWin.refresh()
+                statusWin.clear()
+                STATUS_MESSAGE = "Delete " + displayList[GLOBAL_CURSOR] + "?"
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
                 dlWin.addstr(1, 1, "Are you sure? (y/N)")
                 c = dlWin.getch()
                 if c == ord('y'):
@@ -258,7 +269,7 @@ def main(stdscr):
             psBox.edit()
             passPswd = psBox.gather()
 
-            if passService is not '' and passUser is not '' and passPswd is not '':
+            if passService != '' and passUser != '' and passPswd != '':
                 # wtf = write to file
                 wtf = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
                 files.append(wtf)
@@ -267,18 +278,5 @@ def main(stdscr):
                     csvwriter.writeheader()
                     csvwriter.writerows(files)    
 
-def close():
-    # This makes sure the terminal gets completely "free of curses" when the application ends
-    curses.nocbreak()
-    curses.echo()
-    curses.endwin()
-
-    # Debbuging
-    print("LINES: ", TERM_LINES)
-    print("COLS : ", TERM_COLS)
-    print("MAX_ROWS :", MAX_ROWS)
-    print("Goodbye! \n")
-
 
 wrapper(main)
-close()
