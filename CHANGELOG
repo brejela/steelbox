@@ -9,3 +9,6 @@
     · Minor UI tweaks:
         · Fixed 'view password' window for large passwords
         · Added delete command when on the main window
+- 0.4:
+    · Minor UI tweaks
+    · Added 'modify' command

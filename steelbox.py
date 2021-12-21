@@ -89,20 +89,27 @@ def main(stdscr):
     global CUROW
     CUROW = 0
 
+    global PSERV
+    PSERV = ""
+    global PUSER
+    PUSER = ""
+    global PPSWD
+    PPSWD = ""
+
 
 
     # Initializes the main window
     mainwin = curses.newwin(TERM_LINES -1, TERM_COLS, 0, 0)
     mainwin.keypad(True)
     mainwin.bkgd(' ', main_pallete)
-    mainwin.clear()
+    mainwin.border()
 
     # Initializes the bottom window
     statusWin = curses.newwin(3, TERM_COLS, TERM_LINES, 0)
     statusWin.keypad(True)
     statusWin.border()
     statusWin.bkgd(' ', main_pallete)
-    statusWin.clear()
+    statusWin.border()
 
 
     while True:
@@ -114,8 +121,8 @@ def main(stdscr):
         if ITEM_CURSOR > MAX_ITEMS or ITEM_CURSOR > len(files)-1: ITEM_CURSOR = 0
 
         # Makes sure the windows are properly clean
-        mainwin.clear()
-        statusWin.clear()
+        mainwin.border()
+        statusWin.border()
         mainwin.border()
         mainwin.addstr(0, 1, "SteelBox V" + str(version))
         mainwin.refresh()
@@ -148,7 +155,7 @@ def main(stdscr):
                 COLUMN+=16
                 NROWS+=1
         mainwin.refresh()
-        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(d|el)ete,(e)xmn,(n)ew,(q)uit"
+        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(d|el)ete,(e)xamine,(n)ew, (m)odify,(q)uit"
         statusWin.addstr(0,0, STATUS_MESSAGE)
         statusWin.refresh()
 
@@ -186,11 +193,12 @@ def main(stdscr):
             if CURR_PAGE < MAX_PAGES:
                 CURR_PAGE+=1
                 GLOBAL_CURSOR+=MAX_ITEMS
+        
         elif c == ord('d') or c == curses.KEY_DC:
                 dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
                 dlWin.border()
                 dlWin.refresh()
-                statusWin.clear()
+                statusWin.border()
                 STATUS_MESSAGE = "Delete " + displayList[GLOBAL_CURSOR] + "?"
                 statusWin.addstr(0,0, STATUS_MESSAGE)
                 statusWin.refresh()
@@ -222,7 +230,7 @@ def main(stdscr):
             # Initializes the file viewer window
             fileWin = curses.newwin(5, 60, LINE+5, COLUMN)
             # Clears the window
-            fileWin.clear()
+            fileWin.border()
             fileWin.border()
 
             passService = files[GLOBAL_CURSOR]['service'][:45]
@@ -232,8 +240,8 @@ def main(stdscr):
             fileWin.addstr(1, 1, "SRVC: " + passService)
             fileWin.addstr(2, 1, "NAME: " + passUser)
             fileWin.addstr(3, 1, "PSWD: " + passPswd)
-            statusWin.clear()
-            STATUS_MESSAGE = "cmds:(d|DEL)ete "
+            statusWin.border()
+            STATUS_MESSAGE = "cmds:(d|DEL)ete,(m)odify "
             statusWin.addstr(0,0, STATUS_MESSAGE)
             statusWin.refresh()
             fileWin.refresh()
@@ -243,7 +251,7 @@ def main(stdscr):
                 dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
                 dlWin.border()
                 dlWin.refresh()
-                statusWin.clear()
+                statusWin.border()
                 STATUS_MESSAGE = "Delete " + displayList[GLOBAL_CURSOR] + "?"
                 statusWin.addstr(0,0, STATUS_MESSAGE)
                 statusWin.refresh()
@@ -261,6 +269,75 @@ def main(stdscr):
                         csvreader=csv.DictReader(pasfile)
                         for ids in csvreader:
                             files.append(ids)
+            elif c == ord('m'):
+                # Extracts the file to be modified
+                modFile = files[GLOBAL_CURSOR]
+                # Removes it from the main file
+                files.pop(GLOBAL_CURSOR)
+                # Creates the 'modify password' window
+                modWin = curses.newwin(5, 60,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
+                # Gets the coordinates for the top left corner of said window
+                nwCord = modWin.getbegyx()
+                # Creates the fields in which the password will be edited
+                svWin = curses.newwin(1, 45, nwCord[0]+1, nwCord[1]+6)
+                svWin.addstr(0, 0, modFile['service'])
+                svWin.move(0, 0)
+                svBox = Textbox(svWin)
+                usWin = curses.newwin(1, 45, nwCord[0]+2, nwCord[1]+6)
+                usWin.addstr(0, 0, modFile['user'])
+                usWin.move(0, 0)
+                usBox = Textbox(usWin)            
+                psWin = curses.newwin(1, 45, nwCord[0]+3, nwCord[1]+6)
+                psWin.addstr(0, 0, modFile['pswd'])
+                psWin.move(0, 0)
+                psBox = Textbox(psWin)
+
+
+                # Clears the 'modify password' window
+                modWin.border()
+                modWin.border()
+
+                modWin.addstr(0, 1, "Modify password")
+                modWin.addstr(1, 1, "SRVC:")
+                modWin.addstr(2, 1, "USER:")
+                modWin.addstr(3, 1, "PSWD:")
+                modWin.refresh()
+                svWin.refresh()
+                usWin.refresh()
+                psWin.refresh()
+
+                # Takes data
+                STATUS_MESSAGE = "Edit SERVICE field - CTRL+G to enter, MAX 45 CHARS"
+                statusWin.border()
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
+                svBox.edit()
+                passService = svBox.gather()
+                STATUS_MESSAGE = "Edit USER field - CTRL+G to enter, MAX 45 CHARS"
+                statusWin.border()
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
+                usBox.edit()
+                passUser = usBox.gather()
+                STATUS_MESSAGE = "Edit PASSWORD field - CTRL+G to enter, MAX 45 CHARS"
+                statusWin.border()
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
+                psBox.edit()
+                passPswd = psBox.gather()
+                modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
+                files.insert(GLOBAL_CURSOR, modFile)
+                with open(PASFILE, mode='w') as pasfile:
+                    # Creates writer object and writes to the csv file
+                    csvwriter = csv.DictWriter(pasfile, fields)
+                    csvwriter.writeheader()
+                    csvwriter.writerows(files)
+                files.clear()
+                with open(PASFILE, mode='r') as pasfile:    
+                    # Creates reader object
+                    csvreader=csv.DictReader(pasfile)
+                    for ids in csvreader:
+                        files.append(ids)
 
             
 
@@ -277,7 +354,7 @@ def main(stdscr):
             psBox = Textbox(psWin)
             
             # Clears the 'new password' window
-            npWin.clear()
+            npWin.border()
             npWin.border()
 
             npWin.addstr(0, 1, "New password")
@@ -301,10 +378,81 @@ def main(stdscr):
                 # wtf = write to file
                 wtf = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
                 files.append(wtf)
-                with open(PASFILE, mode='r+') as pasfile:
+                with open(PASFILE, mode='w') as pasfile:
                     csvwriter = csv.DictWriter(pasfile, fields)
                     csvwriter.writeheader()
                     csvwriter.writerows(files)    
+        
+        elif c == ord('m'):
+            # Extracts the file to be modified
+            modFile = files[GLOBAL_CURSOR]
+            # Removes it from the main file
+            files.pop(GLOBAL_CURSOR)
+            # Creates the 'modify password' window
+            modWin = curses.newwin(5, 60,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
+            # Gets the coordinates for the top left corner of said window
+            nwCord = modWin.getbegyx()
+            # Creates the fields in which the password will be edited
+            svWin = curses.newwin(1, 45, nwCord[0]+1, nwCord[1]+6)
+            svWin.addstr(0, 0, modFile['service'])
+            svWin.move(0, 0)
+            svBox = Textbox(svWin)
+            usWin = curses.newwin(1, 45, nwCord[0]+2, nwCord[1]+6)
+            usWin.addstr(0, 0, modFile['user'])
+            usWin.move(0, 0)
+            usBox = Textbox(usWin)            
+            psWin = curses.newwin(1, 45, nwCord[0]+3, nwCord[1]+6)
+            psWin.addstr(0, 0, modFile['pswd'])
+            psWin.move(0, 0)
+            psBox = Textbox(psWin)
+            
+
+            # Clears the 'modify password' window
+            modWin.border()
+            modWin.border()
+
+            modWin.addstr(0, 1, "Modify password")
+            modWin.addstr(1, 1, "SRVC:")
+            modWin.addstr(2, 1, "USER:")
+            modWin.addstr(3, 1, "PSWD:")
+            STATUS_MESSAGE = "CTRL+G to enter, MAX 45 CHARS"
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
+            modWin.refresh()
+            svWin.refresh()
+            usWin.refresh()
+            psWin.refresh()
+
+            # Takes data
+            STATUS_MESSAGE = "Edit SERVICE field"
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
+            svBox.edit()
+            passService = svBox.gather()
+            STATUS_MESSAGE = "Edit USER field"
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
+            usBox.edit()
+            passUser = usBox.gather()
+            STATUS_MESSAGE = "Edit PASSWORD field"
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
+            psBox.edit()
+            passPswd = psBox.gather()
+            modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
+            files.insert(GLOBAL_CURSOR, modFile)
+            with open(PASFILE, mode='w') as pasfile:
+                # Creates writer object and writes to the csv file
+                csvwriter = csv.DictWriter(pasfile, fields)
+                csvwriter.writeheader()
+                csvwriter.writerows(files)
+            files.clear()
+            with open(PASFILE, mode='r') as pasfile:    
+                # Creates reader object
+                csvreader=csv.DictReader(pasfile)
+                for ids in csvreader:
+                    files.append(ids)
+
 
 
 wrapper(main)
