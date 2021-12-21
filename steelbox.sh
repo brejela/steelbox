@@ -21,7 +21,7 @@ else
     read
 fi
 
-python /opt/steelbox.py $version
+python3 /opt/steelbox.py $version
 
 gpg -c --cipher-algo AES256 $HOME/.pasfile.csv
 
