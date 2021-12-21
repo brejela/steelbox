@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-version="0.2"
+version="0.3"
+
+echo Steelbox V$version
+
 
 if [ -f $HOME/.pasfile.csv.gpg ]
 then

@@ -25,7 +25,7 @@ PASFILE=HOMEDIR+"/.pasfile.csv"
 def main(stdscr):
     # Opens password file
     with open(PASFILE, mode='r') as pasfile:    
-        # Creates reader and writer objects
+        # Creates reader object
         csvreader=csv.DictReader(pasfile)
         for ids in csvreader:
             files.append(ids)
@@ -42,11 +42,11 @@ def main(stdscr):
     # Determines terminal size
     global TERM_LINES
     TERM_LINES=curses.LINES - 1
-    if TERM_LINES <= 15:
+    if TERM_LINES <= 20:
         sys.exit("ERROR: Your terminal is too small!")
     global TERM_COLS
     TERM_COLS=curses.COLS - 1 
-    if TERM_COLS <=60:
+    if TERM_COLS <=80:
         sys.exit("ERROR: Your terminal is too small!")
     # Global (program-wide) variables for cursor position
     global LINE
@@ -148,7 +148,7 @@ def main(stdscr):
                 COLUMN+=16
                 NROWS+=1
         mainwin.refresh()
-        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(q)uit,(e)xmn,(n)ew"
+        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(d|el)ete,(e)xmn,(n)ew,(q)uit"
         statusWin.addstr(0,0, STATUS_MESSAGE)
         statusWin.refresh()
 
@@ -160,7 +160,7 @@ def main(stdscr):
         if c == ord('q'):
             return(0)       
         elif c == curses.KEY_DOWN:
-            if GLOBAL_CURSOR < len(files):
+            if GLOBAL_CURSOR < len(files) - 1:
                 ITEM_CURSOR+=1
                 GLOBAL_CURSOR+=1
         elif c == curses.KEY_UP:
@@ -186,6 +186,28 @@ def main(stdscr):
             if CURR_PAGE < MAX_PAGES:
                 CURR_PAGE+=1
                 GLOBAL_CURSOR+=MAX_ITEMS
+        elif c == ord('d') or c == curses.KEY_DC:
+                dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
+                dlWin.border()
+                dlWin.refresh()
+                statusWin.clear()
+                STATUS_MESSAGE = "Delete " + displayList[GLOBAL_CURSOR] + "?"
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
+                dlWin.addstr(1, 1, "Are you sure? (y/N)")
+                c = dlWin.getch()
+                if c == ord('y'):
+                    files.pop(GLOBAL_CURSOR)
+                    with open(PASFILE, mode='w') as pasfile:
+                        csvwriter = csv.DictWriter(pasfile, fields)
+                        csvwriter.writeheader()
+                        csvwriter.writerows(files)
+                    files.clear()
+                    with open(PASFILE, mode='r') as pasfile:    
+                        # Creates reader object
+                        csvreader=csv.DictReader(pasfile)
+                        for ids in csvreader:
+                            files.append(ids)
         
         # For some reason, KEY_UP is 10, instead of the 343 the debbuger flags... Welp ¯\_(ツ)_/¯
         elif c == 10 or c == curses.KEY_ENTER or c == ord('e'):
@@ -198,7 +220,7 @@ def main(stdscr):
             if LINE+10 > TERM_LINES:
                 LINE-=10
             # Initializes the file viewer window
-            fileWin = curses.newwin(5, 40, LINE+5, COLUMN)
+            fileWin = curses.newwin(5, 60, LINE+5, COLUMN)
             # Clears the window
             fileWin.clear()
             fileWin.border()
@@ -229,16 +251,22 @@ def main(stdscr):
                 c = dlWin.getch()
                 if c == ord('y'):
                     files.pop(GLOBAL_CURSOR)
-                    with open(PASFILE, mode='r+') as pasfile:
+                    with open(PASFILE, mode='w') as pasfile:
                         csvwriter = csv.DictWriter(pasfile, fields)
                         csvwriter.writeheader()
                         csvwriter.writerows(files)
+                    files.clear()
+                    with open(PASFILE, mode='r') as pasfile:    
+                        # Creates reader object
+                        csvreader=csv.DictReader(pasfile)
+                        for ids in csvreader:
+                            files.append(ids)
 
             
 
         elif c == ord('n'):
             # Initializes the 'new password' window
-            npWin = curses.newwin(5, 52,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
+            npWin = curses.newwin(5, 60,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
             nwCord = npWin.getbegyx()
             # Initializes the windows in which the textboxes will reside for input
             svWin = curses.newwin(1, 45, nwCord[0]+1, nwCord[1]+6)

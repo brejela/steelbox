@@ -1,0 +1,11 @@
+- 0.2:
+    · Implemented install and launch shell scripts
+    · Implemented GPG encryption on password file
+    · Minor UI tweaks
+    · Some bug fixes
+- 0.3:
+    · Fixed major bug with delete command
+    · Fixed bug with the cursor for when pressing down on the last item
+    · Minor UI tweaks:
+        · Fixed 'view password' window for large passwords
+        · Added delete command when on the main window
