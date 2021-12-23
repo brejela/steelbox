@@ -4,6 +4,7 @@ from curses import wrapper
 from curses.textpad import Textbox
 import sys
 import os
+import pyperclip as pc
 version = sys.argv[1]
 
 ## Initialization of bottomline dependencies
@@ -155,7 +156,7 @@ def main(stdscr):
                 COLUMN+=16
                 NROWS+=1
         mainwin.refresh()
-        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(d|el)ete,(e)xamine,(n)ew, (m)odify,(q)uit"
+        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(d|el)ete,(e)xamine,(n)ew,(c)opy,(m)odify,(q)uit"
         statusWin.addstr(0,0, STATUS_MESSAGE)
         statusWin.refresh()
 
@@ -193,6 +194,14 @@ def main(stdscr):
             if CURR_PAGE < MAX_PAGES:
                 CURR_PAGE+=1
                 GLOBAL_CURSOR+=MAX_ITEMS
+
+        elif c == ord('c') or c == curses.KEY_F3:
+            pc.copy(files[GLOBAL_CURSOR]['pswd'])
+            statusWin.border()
+            STATUS_MESSAGE = "Copied password for " + files[GLOBAL_CURSOR]['service']
+            statusWin.addstr(0,0, STATUS_MESSAGE)
+            statusWin.refresh()
+            mainwin.getch()
         
         elif c == ord('d') or c == curses.KEY_DC:
                 dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
@@ -241,7 +250,7 @@ def main(stdscr):
             fileWin.addstr(2, 1, "NAME: " + passUser)
             fileWin.addstr(3, 1, "PSWD: " + passPswd)
             statusWin.border()
-            STATUS_MESSAGE = "cmds:(d|DEL)ete,(m)odify "
+            STATUS_MESSAGE = "cmds:(d|DEL)ete,(m)odify, (c)opy "
             statusWin.addstr(0,0, STATUS_MESSAGE)
             statusWin.refresh()
             fileWin.refresh()
@@ -291,8 +300,7 @@ def main(stdscr):
                 psWin.addstr(0, 0, modFile['pswd'])
                 psWin.move(0, 0)
                 psBox = Textbox(psWin)
-
-
+            
                 # Clears the 'modify password' window
                 modWin.border()
                 modWin.border()
@@ -338,7 +346,14 @@ def main(stdscr):
                     csvreader=csv.DictReader(pasfile)
                     for ids in csvreader:
                         files.append(ids)
-
+                
+            elif c == ord('c') or c == curses.KEY_F3:
+                pc.copy(files[GLOBAL_CURSOR]['pswd'])
+                statusWin.border()
+                STATUS_MESSAGE = "Copied password for " + files[GLOBAL_CURSOR]['service']
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
+                mainwin.getch()
             
 
         elif c == ord('n'):

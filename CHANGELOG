@@ -12,3 +12,5 @@
 - 0.4:
     · Minor UI tweaks
     · Added 'modify' command
+- 0.5:
+    · Added "copy password to clipboard" command
