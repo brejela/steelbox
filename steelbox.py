@@ -5,7 +5,8 @@ from curses.textpad import Textbox
 import sys
 import os
 import pyperclip as pc
-version = sys.argv[1]
+import random
+version = " test"
 
 ## Initialization of bottomline dependencies
 
@@ -19,8 +20,8 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE=HOMEDIR+"/.pasfile.csv"
-
+#PASFILE=HOMEDIR+"/.pasfile.csv"
+PASFILE="pasfile.csv"
 
 # Initializes Curses' screen
 def main(stdscr):
@@ -156,7 +157,7 @@ def main(stdscr):
                 COLUMN+=16
                 NROWS+=1
         mainwin.refresh()
-        STATUS_MESSAGE = "cmds: PrvPage(F1),NxtPage(F2),(d|el)ete,(e)xamine,(n)ew,(c)opy,(m)odify,(q)uit"
+        STATUS_MESSAGE = "PrvPage(F1),NxtPage(F2),(d|el),(e)xamine,(n)ew,(c)opy,(m)odify,(r)andom,(q)uit"
         statusWin.addstr(0,0, STATUS_MESSAGE)
         statusWin.refresh()
 
@@ -196,13 +197,22 @@ def main(stdscr):
                 GLOBAL_CURSOR+=MAX_ITEMS
 
         elif c == ord('c') or c == curses.KEY_F3:
-            pc.copy(files[GLOBAL_CURSOR]['pswd'])
-            statusWin.border()
-            STATUS_MESSAGE = "Copied password for " + files[GLOBAL_CURSOR]['service']
-            statusWin.addstr(0,0, STATUS_MESSAGE)
-            statusWin.refresh()
-            mainwin.getch()
+            if len(files) > 0:
+                pc.copy(files[GLOBAL_CURSOR]['pswd'])
+                statusWin.border()
+                STATUS_MESSAGE = "Copied password for " + files[GLOBAL_CURSOR]['service']
+                statusWin.addstr(0,0, STATUS_MESSAGE)
+                statusWin.refresh()
+                mainwin.getch()
         
+        elif c == ord('r'):
+            ranWin = curses.newwin(3, 49, int(TERM_LINES/2), int(TERM_COLS/2))
+            ranWin.border()
+            ranWin.addstr(0, 1, "Random string")
+            ranWin.addstr(1, 1, randString())
+            ranWin.refresh()
+            ranWin.getch()
+
         elif c == ord('d') or c == curses.KEY_DC:
                 dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
                 dlWin.border()
@@ -315,19 +325,19 @@ def main(stdscr):
                 psWin.refresh()
 
                 # Takes data
-                STATUS_MESSAGE = "Edit SERVICE field - CTRL+G to enter, MAX 45 CHARS"
+                STATUS_MESSAGE = "Edit SERVICE field - CTRL+G to enter, leave empty to cancel, MAX 45 CHARS"
                 statusWin.border()
                 statusWin.addstr(0,0, STATUS_MESSAGE)
                 statusWin.refresh()
                 svBox.edit()
                 passService = svBox.gather()
-                STATUS_MESSAGE = "Edit USER field - CTRL+G to enter, MAX 45 CHARS"
+                STATUS_MESSAGE = "Edit USER field - CTRL+G to enter, leave empty to cancel, MAX 45 CHARS"
                 statusWin.border()
                 statusWin.addstr(0,0, STATUS_MESSAGE)
                 statusWin.refresh()
                 usBox.edit()
                 passUser = usBox.gather()
-                STATUS_MESSAGE = "Edit PASSWORD field - CTRL+G to enter, MAX 45 CHARS"
+                STATUS_MESSAGE = "Edit PASSWORD field - CTRL+G to enter, leave empty for random string"
                 statusWin.border()
                 statusWin.addstr(0,0, STATUS_MESSAGE)
                 statusWin.refresh()
@@ -376,7 +386,7 @@ def main(stdscr):
             npWin.addstr(1, 1, "SRVC:")
             npWin.addstr(2, 1, "USER:")
             npWin.addstr(3, 1, "PSWD:")
-            STATUS_MESSAGE = "CTRL+G to enter, Leave any empty to cancel, MAX 45 CHARS"
+            STATUS_MESSAGE = "CTRL+G to enter, MAX 45 CHARS"
             statusWin.addstr(0,0, STATUS_MESSAGE)
             statusWin.refresh()
             npWin.refresh()
@@ -389,7 +399,9 @@ def main(stdscr):
             psBox.edit()
             passPswd = psBox.gather()
 
-            if passService != '' and passUser != '' and passPswd != '':
+            if passService != '' and passUser != '':
+                if passPswd == '':
+                    passPswd = randString()
                 # wtf = write to file
                 wtf = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
                 files.append(wtf)
@@ -469,5 +481,13 @@ def main(stdscr):
                     files.append(ids)
 
 
+def randString():
+    result = ''
+    for _ in range(45):
+        ascNum = random.randint(33, 126)
+        if ascNum == 32:
+            ascNum += random.randint(1, 10)
+        result += chr(ascNum)
+    return(result)
 
 wrapper(main)
