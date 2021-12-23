@@ -6,7 +6,7 @@ import sys
 import os
 import pyperclip as pc
 import random
-version = " test"
+version = sys.argv[1]
 
 ## Initialization of bottomline dependencies
 
@@ -20,8 +20,7 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-#PASFILE=HOMEDIR+"/.pasfile.csv"
-PASFILE="pasfile.csv"
+PASFILE=HOMEDIR+"/.pasfile.csv"
 
 # Initializes Curses' screen
 def main(stdscr):
