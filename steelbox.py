@@ -1,6 +1,5 @@
 import csv
 import curses
-from curses import wrapper
 from curses.textpad import Textbox
 import sys
 import os
@@ -170,14 +169,16 @@ def command():
         examine()
     elif c == ord('c') or c == curses.KEY_F3:
         copy()
-    elif c == ord('n'):
+    elif c == ord('n') or c == curses.KEY_F4:
         newFile()
-    elif c == ord('m'):
+    elif c == ord('m') or c == curses.KEY_F5:
         modFile()
     elif c == ord('d') or c == curses.KEY_DC:
         delFile()
     elif c == ord('r'):
         rwin()
+    elif c == ord('h'):
+        sbhelp()
 
 
 def newFile():
@@ -303,6 +304,8 @@ def modFile():
     displayStatus(STATUS_MESSAGE)
     psBox.edit()
     passPswd = psBox.gather()
+    if passPswd == '':
+        passPswd = randString()
     modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
     files.insert(GLOBAL_CURSOR, modFile)
     with open(PASFILE, mode='w') as pasfile:
@@ -375,9 +378,6 @@ def displayItems():
     for ps_name in files:
         displayList.append(ps_name['service'][:15])
 
-
-
-    
     # Reset global necessities
     LINE = 0
     COLUMN = 0
@@ -414,6 +414,19 @@ def displayStatus(msg):
     statuswin.addstr(0,0, msg)
     statuswin.refresh()
 
+def sbhelp():
+    helpwin = curses.newwin(TERM_LINES - 1, TERM_COLS - 1, 0, 0)
+    helpwin.border()
+    helpwin.addstr(1, 1, "Steelbox V." + version)
+    line = 2
+    with open("sbhelp", mode='r') as sbhfile:
+        sbh = sbhfile.readlines()
+        for lines in sbh:
+            helpwin.addstr(line, 1, lines)
+            line+=1
+    line+=1
+    helpwin.addstr(line, 1, "PRESS ANY KEY TO CONTINUE", curses.A_REVERSE)
+    helpwin.getch()
 
 
 
@@ -435,11 +448,7 @@ def close(error = ''):
     stdscr.keypad(False)
     curses.echo()
     curses.endwin()
-    if error == '':
-        print("Goodbye!")
     sys.exit(error)
-
-
 
 globals()
 steelbox()
