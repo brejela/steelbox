@@ -17,3 +17,9 @@
 - 0.6:
     · Added "random string for password" function
     · Fixed a bug with the copy command when the database is empty
+- 1.0:
+    · Code cleanup
+    · Added 'help' command
+    · Minor bug fixes:
+        · ITEM_CURSOR and GLOBAL_CURSOR now behave properly under all(tested) circumstances
+    · Added random string to modify password
