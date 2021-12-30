@@ -211,15 +211,19 @@ def newFile():
     npWin.addstr(1, 1, "SRVC:")
     npWin.addstr(2, 1, "USER:")
     npWin.addstr(3, 1, "PSWD:")
-    STATUS_MESSAGE = "CTRL+G to enter, MAX 45 CHARS"
-    displayStatus(STATUS_MESSAGE)
     npWin.refresh()
 
     # Takes data
+    STATUS_MESSAGE = "Enter the service name - LEAVE EMPTY TO CANCEL"
+    displayStatus(STATUS_MESSAGE)
     svBox.edit()
     passService = svBox.gather()
+    STATUS_MESSAGE = "Enter the username - LEAVE EMPTY TO CANCEL"
+    displayStatus(STATUS_MESSAGE)
     usBox.edit()
     passUser = usBox.gather()
+    STATUS_MESSAGE = "Enter the password- LEAVE EMPTY FOR RANDOM STRING"
+    displayStatus(STATUS_MESSAGE)
     psBox.edit()
     passPswd = psBox.gather()
     if passService != '' and passUser != '':
@@ -256,7 +260,7 @@ def examine():
     fileWin.addstr(1, 1, "SRVC: " + passService)
     fileWin.addstr(2, 1, "NAME: " + passUser)
     fileWin.addstr(3, 1, "PSWD: " + passPswd)
-    STATUS_MESSAGE = "cmds:(d|DEL)ete,(m)odify, (c)opy "
+    STATUS_MESSAGE = "(d|el),(c)opy,(m)odify"
     displayStatus(STATUS_MESSAGE)
     # Gets command to act on the highlighted file
     c = fileWin.getch()
@@ -414,7 +418,7 @@ def displayItems():
             LINE = 0
             COLUMN+=16
             NROWS+=1
-    STATUS_MESSAGE = "PrvPage(F1),NxtPage(F2),(d|el),(n)ew,(c)opy,(m)odify,(r)andom,(q)uit"
+    STATUS_MESSAGE = "(n)ew,(d|el),(c)opy,(m)odify,(h)elp,(q)uit"
     displayStatus(STATUS_MESSAGE)
     mainwin.refresh()
 

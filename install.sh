@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+case $1 in 
+    'remove')
+    echo Deleting steelbox.sh
+    sudo rm /opt/steelbox.sh
+    echo Deleting steelbox.py
+    sudo rm /opt/steelbox.py
+    echo Deleting help file
+    sudo rm /opt/sbhelp
+    echo Deleting link
+    sudo rm /usr/bin/steelbox
+    echo "## Your password file has not been deleted"
+    echo "## It can be found in $HOME/.pasfile.csv"
+    echo "## or $HOME/.pasfile.csv.gpg"
+    exit 0
+    ;;
+esac
+
 echo Steelbox install
 
 echo Copying steelbox.sh

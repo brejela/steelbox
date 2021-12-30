@@ -23,7 +23,10 @@
     · Minor bug fixes:
         · ITEM_CURSOR and GLOBAL_CURSOR now behave properly under all(tested) circumstances
     · Added random string to modify password
-- 1.01
+- 1.01 (Added and removed)
+- 1.02
+    · Added uninstall option (Quite frankly I wonder what took me so long to get this done)
+    · Minor UI fixes
     · Major bug fixes:
         · Fixed 'help command' bug
         · Fixed 'password modify' bug

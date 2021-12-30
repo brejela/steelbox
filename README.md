@@ -1,16 +1,20 @@
 # Steelbox
-![Steel box](https://static.wikia.nocookie.net/elderscrolls/images/6/6a/Skyrim-strongbox.png)
 ## Because sometimes you just want a password manager
 
-Steelbox is a password manager that uses the curses library for interactive terminals
+Steelbox is a password manager that runs under your terminal, with GnuPG.
 
 
-### **ATTENTION: It is recommended you run steelbox under [st](https://st.suckless.org/) or [alacritty](https://alacritty.org/)**
+## **ATTENTION: It is recommended you run steelbox under [st](https://st.suckless.org/) or [alacritty](https://alacritty.org/)**
 
 ### Installation (and upgrade):
 Just run `install.sh` **WITHOUT SUDO**
 
+### To remove Steelbox:
+Just run `install.sh remove` **WITHOUT SUDO**
+
+### Upgrading
 If you're upgrading Steelbox, don't worry: `install.sh` will do it automatically without messing with your password file
+
 #### Dependencies:
 Clipboard support needs the [pyperclip](https://pypi.org/project/pyperclip/) module. You can install it with [pip](https://pypi.org/project/pip/):
 
