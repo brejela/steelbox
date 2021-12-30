@@ -33,5 +33,6 @@
         · Fixed bug with window resizing
 - 1.03
     · Added --no-symkey-cache to gpg, you will now have to type your password everytime you open Steelbox
+    · Added a user manual, both in PDF and HTML, and plain text, it is accompanied by its TEX source.
     · Major bug fixes:
         Fixed resising terminal bug, and made data handling logic work.
