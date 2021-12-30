@@ -20,7 +20,16 @@ then
     sudo rm /opt/steelbox.sh
     exit 1
 fi
-
+echo Copying Help file
+sudo cp -f sbhelp /opt/sbhelp
+if [ $? -gt 0 ]
+then
+    echo COULD NOT COPY HELP FILE
+    echo QUITTING
+    sudo rm /opt/steelbox.sh
+    sudo rm /opt/steelbox.py
+    exit 1
+fi
 echo Setting up permissions
 sudo chmod +x /opt/steelbox.sh
 if [ $? -gt 0 ]
@@ -29,6 +38,7 @@ then
     echo QUITTING
     sudo rm /opt/steelbox.sh
     sudo rm /opt/steelbox.py
+    sudo rm /opt/sbhelp
     exit 1
 fi
 
@@ -42,6 +52,7 @@ then
         echo QUITTING
         sudo rm /opt/steelbox.sh
         sudo rm /opt/steelbox.py
+        sudo rm /opt/sbhelp
         exit 1
     fi
 fi
@@ -57,6 +68,7 @@ then
         sudo rm /opt/steelbox.sh
         sudo rm /opt/steelbox.py
         sudo rm /usr/bin/steelbox
+        sudo rm /opt/sbhelp
         exit 1
     fi
     echo Setting up password file
@@ -82,6 +94,7 @@ then
         sudo rm /opt/steelbox.sh
         sudo rm /opt/steelbox.py
         sudo rm /usr/bin/steelbox
+        sudo rm /opt/sbhelp
         rm $HOME/.pasfile.csv
         exit 1
     fi

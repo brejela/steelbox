@@ -23,3 +23,8 @@
     · Minor bug fixes:
         · ITEM_CURSOR and GLOBAL_CURSOR now behave properly under all(tested) circumstances
     · Added random string to modify password
+- 1.01
+    · Major bug fixes:
+        · Fixed 'help command' bug
+        · Fixed 'password modify' bug
+        · Fixed bug with window resizing

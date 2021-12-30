@@ -22,7 +22,6 @@ fields = ["service", "user", "pswd"]
 HOMEDIR = os.environ['HOME']
 PASFILE=HOMEDIR+"/.pasfile.csv"
 
-
 def reloadFiles():
     files.clear()
     with open(PASFILE, mode='r') as pasfile:    
@@ -55,9 +54,10 @@ def steelbox():
     cleanWins()
 
     while True:
+        termGlobals()
         reloadFiles()
         displayItems()
-        stdscr.move(TERM_LINES, TERM_COLS)
+        stdscr.move(0, 0)
         command()
 
 
@@ -119,6 +119,17 @@ def globals():
     PUSER = ""
     global PPSWD
     PPSWD = ""
+
+# This makes sure that if anyone resizes the terminal window, it won't be smaller than the maximum size
+def termGlobals():
+    global TERM_LINES
+    TERM_LINES=curses.LINES - 1
+    if TERM_LINES <= 20:
+        close("ERROR: Your terminal is too small!")
+    global TERM_COLS
+    TERM_COLS=curses.COLS - 1 
+    if TERM_COLS <=80:
+        close("ERROR: Your terminal is too small!")
 
 # Gets user command
 def command():
@@ -266,15 +277,15 @@ def modFile():
     # Gets the coordinates for the top left corner of said window
     nwCord = modWin.getbegyx()
     # Creates the fields in which the password will be edited
-    svWin = curses.newwin(1, 45, nwCord[0]+1, nwCord[1]+6)
+    svWin = curses.newwin(1, 46, nwCord[0]+1, nwCord[1]+6)
     svWin.addstr(0, 0, modFile['service'])
     svWin.move(0, 0)
     svBox = Textbox(svWin)
-    usWin = curses.newwin(1, 45, nwCord[0]+2, nwCord[1]+6)
+    usWin = curses.newwin(1, 46, nwCord[0]+2, nwCord[1]+6)
     usWin.addstr(0, 0, modFile['user'])
     usWin.move(0, 0)
     usBox = Textbox(usWin)            
-    psWin = curses.newwin(1, 45, nwCord[0]+3, nwCord[1]+6)
+    psWin = curses.newwin(1, 46, nwCord[0]+3, nwCord[1]+6)
     psWin.addstr(0, 0, modFile['pswd'])
     psWin.move(0, 0)
     psBox = Textbox(psWin)
@@ -403,7 +414,7 @@ def displayItems():
             LINE = 0
             COLUMN+=16
             NROWS+=1
-    STATUS_MESSAGE = "PrvPage(F1),NxtPage(F2),(d|el),(e)xamine,(n)ew,(c)opy,(m)odify,(r)andom,(q)uit"
+    STATUS_MESSAGE = "PrvPage(F1),NxtPage(F2),(d|el),(n)ew,(c)opy,(m)odify,(r)andom,(q)uit"
     displayStatus(STATUS_MESSAGE)
     mainwin.refresh()
 
@@ -419,7 +430,7 @@ def sbhelp():
     helpwin.border()
     helpwin.addstr(1, 1, "Steelbox V." + version)
     line = 2
-    with open("sbhelp", mode='r') as sbhfile:
+    with open("/opt/sbhelp", mode='r') as sbhfile:
         sbh = sbhfile.readlines()
         for lines in sbh:
             helpwin.addstr(line, 1, lines)
