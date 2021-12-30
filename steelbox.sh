@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="1.01"
+version="1.02"
 
 echo Steelbox V$version
 
