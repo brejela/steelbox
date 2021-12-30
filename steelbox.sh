@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="1.02"
+version="1.03"
 
 echo Steelbox V$version
 
@@ -23,7 +23,7 @@ fi
 
 python3 /opt/steelbox.py $version
 
-gpg -c --cipher-algo AES256 $HOME/.pasfile.csv
+gpg -c --no-symkey-cache --cipher-algo AES256 $HOME/.pasfile.csv
 
 if [ $? -gt 0 ]
 then

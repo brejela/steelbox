@@ -38,8 +38,7 @@ curses.cbreak()
 stdscr.keypad(True)
 stdscr.clear()
 
-def steelbox():
-    reloadFiles()
+def init():
     # Initializes the main window
     global mainwin 
     mainwin = curses.newwin(TERM_LINES -1, TERM_COLS, 0, 0)
@@ -53,6 +52,13 @@ def steelbox():
     statuswin.border()
     cleanWins()
 
+
+
+# Main function
+def steelbox():
+    reloadFiles()
+    init()
+
     while True:
         termGlobals()
         reloadFiles()
@@ -60,6 +66,46 @@ def steelbox():
         stdscr.move(0, 0)
         command()
 
+# Displays the items on the screen properly
+def displayItems():
+    cleanWins()
+    global NROWS
+    global ITEM_CURSOR
+    # Creates a name list
+    global displayList
+    displayList = []
+    # Appends the names in the CSV to display on the main window
+    for ps_name in files:
+        displayList.append(ps_name['service'][:15])
+
+    # Reset global necessities
+    LINE = 0
+    COLUMN = 0
+    currItem = 0
+    NROWS = 0
+    global highOpt
+    highOpt = ()
+    # Defines what to display
+    startDisplay = (CURR_PAGE-1)*MAX_ITEMS
+    stopDisplay = CURR_PAGE*MAX_ITEMS
+
+    for item in displayList[startDisplay:stopDisplay]:
+        # If the item is the one with the cursor, highlight it
+        if currItem == ITEM_CURSOR:
+            mode = curses.A_REVERSE
+            highOpt = mainwin.getyx()
+        else:
+            mode = curses.A_NORMAL
+        mainwin.addstr(1 + LINE, 1 + COLUMN, item, mode)
+        LINE+=1
+        currItem+=1
+        if LINE >= WINLIMIT:
+            LINE = 0
+            COLUMN+=16
+            NROWS+=1
+    STATUS_MESSAGE = "(n)ew,(d|el),(c)opy,(m)odify,(h)elp,(q)uit"
+    displayStatus(STATUS_MESSAGE)
+    mainwin.refresh()
 
 # Defines global variables
 def globals():
@@ -190,6 +236,14 @@ def command():
         rwin()
     elif c == ord('h'):
         sbhelp()
+    # This avoids the program crashing when resizing the terminal
+    elif c == curses.KEY_RESIZE:
+        y, x = stdscr.getmaxyx()
+        stdscr.clear()
+        curses.resize_term(y, x)
+        cleanWins()
+        globals()
+        init()
 
 
 def newFile():
@@ -371,6 +425,7 @@ def copy():
 
 # Cleans the windows
 def cleanWins():
+    stdscr.clear()
     mainwin.clear()
     statuswin.clear()
     mainwin.border()
@@ -378,50 +433,6 @@ def cleanWins():
     mainwin.addstr(0, 1, "SteelBox V" + str(version))
     mainwin.refresh()
     statuswin.refresh()
-
-
-
-# Displays the items on the screen properly
-def displayItems():
-    cleanWins()
-    global NROWS
-    global ITEM_CURSOR
-    # Creates a name list
-    global displayList
-    displayList = []
-    # Appends the names in the CSV to display on the main window
-    for ps_name in files:
-        displayList.append(ps_name['service'][:15])
-
-    # Reset global necessities
-    LINE = 0
-    COLUMN = 0
-    currItem = 0
-    NROWS = 0
-    global highOpt
-    highOpt = ()
-    # Defines what to display
-    startDisplay = (CURR_PAGE-1)*MAX_ITEMS
-    stopDisplay = CURR_PAGE*MAX_ITEMS
-
-    for item in displayList[startDisplay:stopDisplay]:
-        # If the item is the one with the cursor, highlight it
-        if currItem == ITEM_CURSOR:
-            mode = curses.A_REVERSE
-            highOpt = mainwin.getyx()
-        else:
-            mode = curses.A_NORMAL
-        mainwin.addstr(1 + LINE, 1 + COLUMN, item, mode)
-        LINE+=1
-        currItem+=1
-        if LINE >= WINLIMIT:
-            LINE = 0
-            COLUMN+=16
-            NROWS+=1
-    STATUS_MESSAGE = "(n)ew,(d|el),(c)opy,(m)odify,(h)elp,(q)uit"
-    displayStatus(STATUS_MESSAGE)
-    mainwin.refresh()
-
 
 # Displays on the status window
 def displayStatus(msg):
