@@ -456,7 +456,7 @@ def rwin():
     ranWin = curses.newwin(3, 49, int(TERM_LINES/2), int(TERM_COLS/2))
     ranWin.border()
     ranWin.addstr(0, 1, "Random string")
-    ranWin.addstr(1, 1, randString())
+    ranWin.addstr(1, 1, randString(45))
     ranWin.refresh()
     ranWin.getch()
 
