@@ -15,7 +15,8 @@ D/Del:......................Delete password                                     
 When creating a password, you can leave the PSWD field empty, a random password                                                                                                                                                ││
 will be generated in its place.                                                                                                                                                                                                ││
 Leaving the PSWD field empty when modifying a password will also give it                                                                                                                                                       ││
-a random string.  
+a random string. You can specify the length of your random password with a colon(:)
+PSWD::16 - Will make you a random password of 16 characters 
 ------------------------------------------------------------------------                                                                                                                                                                                                             ││
 In case you're not running this software under st or alacritty,                                                                                                                                                                ││
 cursor navigation can be a bit janky:                                                                                                                                                                                          ││

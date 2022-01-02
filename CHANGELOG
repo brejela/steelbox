@@ -36,3 +36,10 @@
     · Added a user manual, both in PDF and HTML, and plain text, it is accompanied by its TEX source.
     · Major bug fixes:
         Fixed resising terminal bug, and made data handling logic work.
+- 1.04
+    · Added custom-length random passwords
+    · Major bug fixes:
+        · Fixed GLOBAL_CURSOR position when a file is deleted
+        · Fixed bug when trying to read a password in an empty database (Database now avoids being empty by populating itself with at lest one file)
+    · Changed MANUAL and sbhelp accordingly, and made some changes to the licenses section
+        · Also, deleted the plaintext version
