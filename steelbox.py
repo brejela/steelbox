@@ -6,7 +6,7 @@ import os
 import pyperclip as pc
 import random
 
-version = sys.argv[1]
+version = "1.04d"
 
 ## Initialization of bottomline dependencies
 
@@ -20,7 +20,7 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE=HOMEDIR+"/.pasfile.csv"
+PASFILE="pasfile.csv"
 
 def reloadFiles():
     files.clear()
@@ -53,6 +53,14 @@ def init():
     cleanWins()
 
 
+def populate():
+    wtf = {'service' : 'ServiceExample', 'user' : 'UserExample', 'pswd' : randString(45)}
+    files.append(wtf)
+    with open(PASFILE, mode='w') as pasfile:
+        csvwriter = csv.DictWriter(pasfile, fields)
+        csvwriter.writeheader()
+        csvwriter.writerows(files)
+    reloadFiles()
 
 # Main function
 def steelbox():
@@ -62,6 +70,8 @@ def steelbox():
     while True:
         termGlobals()
         reloadFiles()
+        if len(files) < 1:
+            populate()
         displayItems()
         stdscr.move(0, 0)
         command()
@@ -282,7 +292,23 @@ def newFile():
     passPswd = psBox.gather()
     if passService != '' and passUser != '':
         if passPswd == '':
-            passPswd = randString()
+            passPswd = randString(45)
+        elif passPswd[0] == ':':
+            if len(passPswd) < 3:
+                pSize = 45
+            elif len(passPswd) == 3:
+                if str.isnumeric(passPswd[1]):
+                    pSize = int(passPswd[1])
+                else:
+                    pSize = 45
+            else:
+                if str.isnumeric(passPswd[1:3]):
+                    pSize = int(passPswd[1:3])
+                else:
+                    pSize = 45
+            if pSize > 45:
+                pSize = 45
+            passPswd = randString(pSize)
         # wtf = write to file
         wtf = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
         files.append(wtf)
@@ -373,8 +399,25 @@ def modFile():
     displayStatus(STATUS_MESSAGE)
     psBox.edit()
     passPswd = psBox.gather()
-    if passPswd == '':
-        passPswd = randString()
+    if passService != '' and passUser != '':
+        if passPswd == '':
+            passPswd = randString(45)
+        elif passPswd[0] == ':':
+            if len(passPswd) < 3:
+                pSize = 45
+            elif len(passPswd) == 3:
+                if str.isnumeric(passPswd[1]):
+                    pSize = int(passPswd[1])
+                else:
+                    pSize = 45
+            else:
+                if str.isnumeric(passPswd[1:3]):
+                    pSize = int(passPswd[1:3])
+                else:
+                    pSize = 45
+            if pSize > 45:
+                pSize = 45
+            passPswd = randString(pSize)
     modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
     files.insert(GLOBAL_CURSOR, modFile)
     with open(PASFILE, mode='w') as pasfile:
@@ -386,6 +429,8 @@ def modFile():
 
 
 def delFile():
+    global GLOBAL_CURSOR
+    global ITEM_CURSOR
     dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
     dlWin.border()
     dlWin.refresh()
@@ -400,6 +445,9 @@ def delFile():
             csvwriter.writeheader()
             csvwriter.writerows(files)
         reloadFiles()
+    if GLOBAL_CURSOR > 0:
+        GLOBAL_CURSOR -= 1
+        ITEM_CURSOR -= 1
     
 
 
@@ -457,9 +505,9 @@ def sbhelp():
 
 
 # Returns a random string of length 45
-def randString():
+def randString(size):
     result = ''
-    for _ in range(45):
+    for _ in range(size):
         ascNum = random.randint(33, 126)
         if ascNum == 32:
             ascNum += random.randint(1, 10)
