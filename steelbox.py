@@ -23,7 +23,7 @@ import os
 import pyperclip as pc
 import random
 
-version = "200d"
+version = sys.argv[1]
 
 ## Initialization of bottomline dependencies
 
@@ -37,7 +37,7 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE="pasfile.csv"
+PASFILE=HOMEDIR+"/.pasfile.csv"
 
 def reloadFiles():
     files.clear()
