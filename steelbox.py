@@ -1,3 +1,20 @@
+# Steelbox, the password manager for your terminal.
+# Full license inside the manual at doc/
+# Copyright (C) 2022 Kamal Curi
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PUR-
+# POSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Founda-
+# tion, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+# USA.
+# You can contact the developer by sending an email to kamalcuri@outlook.com
+
 import csv
 import curses
 from curses.textpad import Textbox
@@ -6,7 +23,7 @@ import os
 import pyperclip as pc
 import random
 
-version = sys.argv[1]
+version = "200d"
 
 ## Initialization of bottomline dependencies
 
@@ -20,7 +37,7 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE=HOMEDIR+"/.pasfile.csv"
+PASFILE="pasfile.csv"
 
 def reloadFiles():
     files.clear()
@@ -255,7 +272,6 @@ def command():
         globals()
         init()
 
-
 def newFile():
     # Initializes the 'new password' window
     npWin = curses.newwin(5, 60,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
@@ -419,13 +435,23 @@ def modFile():
                 pSize = 45
             passPswd = randString(pSize)
     modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
-    files.insert(GLOBAL_CURSOR, modFile)
-    with open(PASFILE, mode='w') as pasfile:
-        # Creates writer object and writes to the csv file
-        csvwriter = csv.DictWriter(pasfile, fields)
-        csvwriter.writeheader()
-        csvwriter.writerows(files)
-    reloadFiles()
+
+    # This is just a copy of delfile's confirmation routine
+    dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
+    dlWin.border()
+    dlWin.refresh()
+    STATUS_MESSAGE = "Modify " + displayList[GLOBAL_CURSOR] + "?"
+    displayStatus(STATUS_MESSAGE)
+    dlWin.addstr(1, 1, "Are you sure? (y/N)")
+    c = dlWin.getch()
+    if c == ord('y'):
+        files.insert(GLOBAL_CURSOR, modFile)
+        with open(PASFILE, mode='w') as pasfile:
+            # Creates writer object and writes to the csv file
+            csvwriter = csv.DictWriter(pasfile, fields)
+            csvwriter.writeheader()
+            csvwriter.writerows(files)
+        reloadFiles()
 
 
 def delFile():
@@ -488,6 +514,7 @@ def displayStatus(msg):
     statuswin.addstr(0,0, msg)
     statuswin.refresh()
 
+# Displays the help file
 def sbhelp():
     helpwin = curses.newwin(TERM_LINES - 1, TERM_COLS - 1, 0, 0)
     helpwin.border()
@@ -502,8 +529,6 @@ def sbhelp():
     helpwin.addstr(line, 1, "PRESS ANY KEY TO CONTINUE", curses.A_REVERSE)
     helpwin.getch()
 
-
-
 # Returns a random string of length 45
 def randString(size):
     result = ''
@@ -513,8 +538,6 @@ def randString(size):
             ascNum += random.randint(1, 10)
         result += chr(ascNum)
     return(result)
-
-
 
 # Finishes the application
 def close(error = ''):

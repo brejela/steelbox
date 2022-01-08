@@ -43,3 +43,6 @@
         · Fixed bug when trying to read a password in an empty database (Database now avoids being empty by populating itself with at lest one file)
     · Changed MANUAL and sbhelp accordingly, and made some changes to the licenses section
         · Also, deleted the plaintext version
+- 1.1
+    · Added license to source code to better comply with GPLv2;
+    · Added confirmation dialog for modification of passwords

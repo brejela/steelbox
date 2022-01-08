@@ -1,8 +1,12 @@
+# Copyright (C) 2022 Kamal Curi
+# Full license inside the manual at doc/
+
 #!/usr/bin/env bash
 
 version="1.04"
 
-echo Steelbox V$version
+echo "Steelbox V$version, Copyright (C) 2022 Kamal Curi"
+echo "Read the manual in doc/ for the GPL2 License's details."
 
 
 if [ -f $HOME/.pasfile.csv.gpg ]
