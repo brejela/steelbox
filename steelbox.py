@@ -23,7 +23,7 @@ import os
 import pyperclip as pc
 import random
 
-version = sys.argv[1]
+version = "v120d"
 
 ## Initialization of bottomline dependencies
 
@@ -37,7 +37,7 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE=HOMEDIR+"/.pasfile.csv"
+PASFILE="pasfile.csv"
 
 def reloadFiles():
     files.clear()
@@ -98,12 +98,19 @@ def displayItems():
     cleanWins()
     global NROWS
     global ITEM_CURSOR
+    global SQUERY
     # Creates a name list
     global displayList
     displayList = []
     # Appends the names in the CSV to display on the main window
-    for ps_name in files:
-        displayList.append(ps_name['service'][:15])
+    if SQUERY == '':
+        for ps_name in files:
+            displayList.append(ps_name['service'][:15])
+    else:
+        for ps_name in files:
+            sname = ps_name['service']
+            if ps_name['service'].find(SQUERY) != -1:
+                displayList.append(ps_name['service'][:15])
 
     # Reset global necessities
     LINE = 0
@@ -113,8 +120,8 @@ def displayItems():
     global highOpt
     highOpt = ()
     # Defines what to display
-    startDisplay = (CURR_PAGE-1)*MAX_ITEMS
-    stopDisplay = CURR_PAGE*MAX_ITEMS
+    startDisplay = (CURR_PAGE-1)*len(displayList)
+    stopDisplay = CURR_PAGE*len(displayList)
 
     for item in displayList[startDisplay:stopDisplay]:
         # If the item is the one with the cursor, highlight it
@@ -130,7 +137,7 @@ def displayItems():
             LINE = 0
             COLUMN+=16
             NROWS+=1
-    STATUS_MESSAGE = "(n)ew,(d|el),(c)opy,(m)odify,(h)elp,(q)uit"
+    STATUS_MESSAGE = "(n)ew,(d|el),(s)earch,(c)opy,(m)odify,(h)elp,(q)uit"
     displayStatus(STATUS_MESSAGE)
     mainwin.refresh()
 
@@ -192,6 +199,8 @@ def globals():
     PUSER = ""
     global PPSWD
     PPSWD = ""
+    global SQUERY
+    SQUERY = ""
 
 # This makes sure that if anyone resizes the terminal window, it won't be smaller than the maximum size
 def termGlobals():
@@ -253,6 +262,8 @@ def command():
         examine()
     elif c == ord('c') or c == curses.KEY_F3:
         copy()
+    elif c == ord('s') or c == curses.KEY_F6:
+        searchWin()
     elif c == ord('n') or c == curses.KEY_F4:
         newFile()
     elif c == ord('m') or c == curses.KEY_F5:
@@ -495,6 +506,25 @@ def copy():
         displayStatus(STATUS_MESSAGE)
         mainwin.getch()
 
+def searchWin():
+    global STATUS_MESSAGE
+    global TERM_LINES
+    global TERM_COLS
+    global SQUERY
+    searchWin = curses.newwin(3, 49, int(TERM_LINES/2), int(TERM_COLS/2))
+    searchWin.border()
+    searchWin.addstr(0, 1, "Search service")
+    winPosY = searchWin.getbegyx()[0]
+    winPosX = searchWin.getbegyx()[1]
+    swin = curses.newwin(1, 45, winPosY + 1, winPosX + 1)
+    sbox = Textbox(swin)
+    STATUS_MESSAGE = "Type in service name"
+    displayStatus(STATUS_MESSAGE)
+    searchWin.refresh()
+    sbox.edit()
+    SQUERY = sbox.gather()
+    l = len(SQUERY)
+    SQUERY = SQUERY[:l-1]
 
 
 # Cleans the windows
