@@ -23,7 +23,7 @@ import os
 import pyperclip as pc
 import random
 
-version = "v120d"
+version = sys.argv[1]
 
 ## Initialization of bottomline dependencies
 
@@ -37,15 +37,22 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE="pasfile.csv"
+PASFILE=HOMEDIR+"/.pasfile.csv"
 
 def reloadFiles():
+    global SQUERY
     files.clear()
     with open(PASFILE, mode='r') as pasfile:    
             # Creates reader object
             csvreader=csv.DictReader(pasfile)
-            for ids in csvreader:
-                files.append(ids)
+            if SQUERY == '':
+                for ids in csvreader:
+                    files.append(ids)
+            else:
+                for ids in csvreader:
+                    if ids['service'].find(SQUERY) != -1:
+                        files.append(ids)
+
 
 
 # Initializes the curses screen
@@ -87,7 +94,7 @@ def steelbox():
     while True:
         termGlobals()
         reloadFiles()
-        if len(files) < 1:
+        if len(files) < 1 and SQUERY == '':
             populate()
         displayItems()
         stdscr.move(0, 0)
@@ -103,14 +110,8 @@ def displayItems():
     global displayList
     displayList = []
     # Appends the names in the CSV to display on the main window
-    if SQUERY == '':
-        for ps_name in files:
-            displayList.append(ps_name['service'][:15])
-    else:
-        for ps_name in files:
-            sname = ps_name['service']
-            if ps_name['service'].find(SQUERY) != -1:
-                displayList.append(ps_name['service'][:15])
+    for ps_name in files:
+        displayList.append(ps_name['service'][:15])
 
     # Reset global necessities
     LINE = 0
@@ -120,8 +121,8 @@ def displayItems():
     global highOpt
     highOpt = ()
     # Defines what to display
-    startDisplay = (CURR_PAGE-1)*len(displayList)
-    stopDisplay = CURR_PAGE*len(displayList)
+    startDisplay = (CURR_PAGE-1)*MAX_ITEMS
+    stopDisplay = CURR_PAGE*MAX_ITEMS
 
     for item in displayList[startDisplay:stopDisplay]:
         # If the item is the one with the cursor, highlight it
@@ -215,6 +216,11 @@ def termGlobals():
 
 # Gets user command
 def command():
+    # This solution, for the case where the search function finds nothing, is cursed beyond belief,
+    global displayList
+    if len(displayList) < 1:
+        noMatch()
+        return()
     # The GLOBAL_CURSOR points to the main files object, so that it gets the right file.
     global c
     global CUROW
@@ -379,10 +385,9 @@ def examine():
         copy()
 
 def modFile():
+    global files
     # Extracts the file to be modified
     modFile = files[GLOBAL_CURSOR]
-    # Removes it from the main file
-    files.pop(GLOBAL_CURSOR)
     # Creates the 'modify password' window
     modWin = curses.newwin(5, 60,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
     # Gets the coordinates for the top left corner of said window
@@ -446,7 +451,6 @@ def modFile():
                 pSize = 45
             passPswd = randString(pSize)
     modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
-
     # This is just a copy of delfile's confirmation routine
     dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
     dlWin.border()
@@ -456,9 +460,20 @@ def modFile():
     dlWin.addstr(1, 1, "Are you sure? (y/N)")
     c = dlWin.getch()
     if c == ord('y'):
-        files.insert(GLOBAL_CURSOR, modFile)
+        iCount = 0
+        with open(PASFILE, mode='r') as pasfile:
+            oldFiles = []
+            csvreader = csv.DictReader(pasfile)
+            for ids in csvreader:
+                oldFiles.append(ids)
+            for ids in oldFiles:
+                if ids['service'] == files[GLOBAL_CURSOR]['service'] and ids['user'] == files[GLOBAL_CURSOR]['user'] and ids['pswd'] == files[GLOBAL_CURSOR]['pswd']:
+                    oldFiles.pop(iCount)
+                    iPos = iCount            
+                iCount += 1 
+            oldFiles.insert(iPos, modFile)
+            files = oldFiles
         with open(PASFILE, mode='w') as pasfile:
-            # Creates writer object and writes to the csv file
             csvwriter = csv.DictWriter(pasfile, fields)
             csvwriter.writeheader()
             csvwriter.writerows(files)
@@ -468,6 +483,7 @@ def modFile():
 def delFile():
     global GLOBAL_CURSOR
     global ITEM_CURSOR
+    global files
     dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
     dlWin.border()
     dlWin.refresh()
@@ -476,7 +492,17 @@ def delFile():
     dlWin.addstr(1, 1, "Are you sure? (y/N)")
     c = dlWin.getch()
     if c == ord('y'):
-        files.pop(GLOBAL_CURSOR)
+        iCount = 0
+        with open(PASFILE, mode='r') as pasfile:
+            oldFiles = []
+            csvreader = csv.DictReader(pasfile)
+            for ids in csvreader:
+                oldFiles.append(ids)
+            for ids in oldFiles:
+                if ids['service'] == files[GLOBAL_CURSOR]['service'] and ids['user'] == files[GLOBAL_CURSOR]['user'] and ids['pswd'] == files[GLOBAL_CURSOR]['pswd']:
+                    oldFiles.pop(iCount)
+                iCount += 1 
+            files = oldFiles
         with open(PASFILE, mode='w') as pasfile:
             csvwriter = csv.DictWriter(pasfile, fields)
             csvwriter.writeheader()
@@ -511,6 +537,8 @@ def searchWin():
     global TERM_LINES
     global TERM_COLS
     global SQUERY
+    global ITEM_CURSOR
+    global GLOBAL_CURSOR
     searchWin = curses.newwin(3, 49, int(TERM_LINES/2), int(TERM_COLS/2))
     searchWin.border()
     searchWin.addstr(0, 1, "Search service")
@@ -525,6 +553,17 @@ def searchWin():
     SQUERY = sbox.gather()
     l = len(SQUERY)
     SQUERY = SQUERY[:l-1]
+    ITEM_CURSOR = 0
+    GLOBAL_CURSOR = 0
+
+
+def noMatch():
+    global SQUERY
+    nomwin = curses.newwin(3, 40, int(TERM_LINES/2), int(TERM_COLS/2))
+    nomwin.border()
+    nomwin.addstr(1, 1, "No passwords match the search criteria")
+    SQUERY = ''
+    nomwin.getch()
 
 
 # Cleans the windows

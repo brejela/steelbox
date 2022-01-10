@@ -3,10 +3,10 @@
 
 #!/usr/bin/env bash
 
-version="1.04"
+version="1.2"
 
 echo "Steelbox V$version, Copyright (C) 2022 Kamal Curi"
-echo "Steelbox comes with ABSOLUTELY NO WARRANTY; for details, read the manual in doc/"
+echo "Steelbox comes with ABSOLUTELY NO WARRANTY; For license details, read the manual in doc/"
 
 
 if [ -f $HOME/.pasfile.csv.gpg ]
