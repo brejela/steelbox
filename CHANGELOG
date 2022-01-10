@@ -46,3 +46,5 @@
 - 1.1
     · Added license to source code to better comply with GPLv2;
     · Added confirmation dialog for modification of passwords
+- 1.2
+    · Added search function

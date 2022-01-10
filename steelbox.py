@@ -40,12 +40,19 @@ HOMEDIR = os.environ['HOME']
 PASFILE=HOMEDIR+"/.pasfile.csv"
 
 def reloadFiles():
+    global SQUERY
     files.clear()
     with open(PASFILE, mode='r') as pasfile:    
             # Creates reader object
             csvreader=csv.DictReader(pasfile)
-            for ids in csvreader:
-                files.append(ids)
+            if SQUERY == '':
+                for ids in csvreader:
+                    files.append(ids)
+            else:
+                for ids in csvreader:
+                    if ids['service'].find(SQUERY) != -1:
+                        files.append(ids)
+
 
 
 # Initializes the curses screen
@@ -87,7 +94,7 @@ def steelbox():
     while True:
         termGlobals()
         reloadFiles()
-        if len(files) < 1:
+        if len(files) < 1 and SQUERY == '':
             populate()
         displayItems()
         stdscr.move(0, 0)
@@ -98,6 +105,7 @@ def displayItems():
     cleanWins()
     global NROWS
     global ITEM_CURSOR
+    global SQUERY
     # Creates a name list
     global displayList
     displayList = []
@@ -130,7 +138,7 @@ def displayItems():
             LINE = 0
             COLUMN+=16
             NROWS+=1
-    STATUS_MESSAGE = "(n)ew,(d|el),(c)opy,(m)odify,(h)elp,(q)uit"
+    STATUS_MESSAGE = "(n)ew,(d|el),(s)earch,(c)opy,(m)odify,(h)elp,(q)uit"
     displayStatus(STATUS_MESSAGE)
     mainwin.refresh()
 
@@ -192,6 +200,8 @@ def globals():
     PUSER = ""
     global PPSWD
     PPSWD = ""
+    global SQUERY
+    SQUERY = ""
 
 # This makes sure that if anyone resizes the terminal window, it won't be smaller than the maximum size
 def termGlobals():
@@ -206,6 +216,11 @@ def termGlobals():
 
 # Gets user command
 def command():
+    # This solution, for the case where the search function finds nothing, is cursed beyond belief,
+    global displayList
+    if len(displayList) < 1:
+        noMatch()
+        return()
     # The GLOBAL_CURSOR points to the main files object, so that it gets the right file.
     global c
     global CUROW
@@ -253,6 +268,8 @@ def command():
         examine()
     elif c == ord('c') or c == curses.KEY_F3:
         copy()
+    elif c == ord('s') or c == curses.KEY_F6:
+        searchWin()
     elif c == ord('n') or c == curses.KEY_F4:
         newFile()
     elif c == ord('m') or c == curses.KEY_F5:
@@ -368,10 +385,9 @@ def examine():
         copy()
 
 def modFile():
+    global files
     # Extracts the file to be modified
     modFile = files[GLOBAL_CURSOR]
-    # Removes it from the main file
-    files.pop(GLOBAL_CURSOR)
     # Creates the 'modify password' window
     modWin = curses.newwin(5, 60,int(TERM_LINES/2)-2, int(TERM_COLS/2)-18)
     # Gets the coordinates for the top left corner of said window
@@ -435,7 +451,6 @@ def modFile():
                 pSize = 45
             passPswd = randString(pSize)
     modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
-
     # This is just a copy of delfile's confirmation routine
     dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
     dlWin.border()
@@ -445,9 +460,20 @@ def modFile():
     dlWin.addstr(1, 1, "Are you sure? (y/N)")
     c = dlWin.getch()
     if c == ord('y'):
-        files.insert(GLOBAL_CURSOR, modFile)
+        iCount = 0
+        with open(PASFILE, mode='r') as pasfile:
+            oldFiles = []
+            csvreader = csv.DictReader(pasfile)
+            for ids in csvreader:
+                oldFiles.append(ids)
+            for ids in oldFiles:
+                if ids['service'] == files[GLOBAL_CURSOR]['service'] and ids['user'] == files[GLOBAL_CURSOR]['user'] and ids['pswd'] == files[GLOBAL_CURSOR]['pswd']:
+                    oldFiles.pop(iCount)
+                    iPos = iCount            
+                iCount += 1 
+            oldFiles.insert(iPos, modFile)
+            files = oldFiles
         with open(PASFILE, mode='w') as pasfile:
-            # Creates writer object and writes to the csv file
             csvwriter = csv.DictWriter(pasfile, fields)
             csvwriter.writeheader()
             csvwriter.writerows(files)
@@ -457,6 +483,7 @@ def modFile():
 def delFile():
     global GLOBAL_CURSOR
     global ITEM_CURSOR
+    global files
     dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
     dlWin.border()
     dlWin.refresh()
@@ -465,7 +492,17 @@ def delFile():
     dlWin.addstr(1, 1, "Are you sure? (y/N)")
     c = dlWin.getch()
     if c == ord('y'):
-        files.pop(GLOBAL_CURSOR)
+        iCount = 0
+        with open(PASFILE, mode='r') as pasfile:
+            oldFiles = []
+            csvreader = csv.DictReader(pasfile)
+            for ids in csvreader:
+                oldFiles.append(ids)
+            for ids in oldFiles:
+                if ids['service'] == files[GLOBAL_CURSOR]['service'] and ids['user'] == files[GLOBAL_CURSOR]['user'] and ids['pswd'] == files[GLOBAL_CURSOR]['pswd']:
+                    oldFiles.pop(iCount)
+                iCount += 1 
+            files = oldFiles
         with open(PASFILE, mode='w') as pasfile:
             csvwriter = csv.DictWriter(pasfile, fields)
             csvwriter.writeheader()
@@ -495,6 +532,38 @@ def copy():
         displayStatus(STATUS_MESSAGE)
         mainwin.getch()
 
+def searchWin():
+    global STATUS_MESSAGE
+    global TERM_LINES
+    global TERM_COLS
+    global SQUERY
+    global ITEM_CURSOR
+    global GLOBAL_CURSOR
+    searchWin = curses.newwin(3, 49, int(TERM_LINES/2), int(TERM_COLS/2))
+    searchWin.border()
+    searchWin.addstr(0, 1, "Search service")
+    winPosY = searchWin.getbegyx()[0]
+    winPosX = searchWin.getbegyx()[1]
+    swin = curses.newwin(1, 45, winPosY + 1, winPosX + 1)
+    sbox = Textbox(swin)
+    STATUS_MESSAGE = "Type in service name"
+    displayStatus(STATUS_MESSAGE)
+    searchWin.refresh()
+    sbox.edit()
+    SQUERY = sbox.gather()
+    l = len(SQUERY)
+    SQUERY = SQUERY[:l-1]
+    ITEM_CURSOR = 0
+    GLOBAL_CURSOR = 0
+
+
+def noMatch():
+    global SQUERY
+    nomwin = curses.newwin(3, 40, int(TERM_LINES/2), int(TERM_COLS/2))
+    nomwin.border()
+    nomwin.addstr(1, 1, "No passwords match the search criteria")
+    SQUERY = ''
+    nomwin.getch()
 
 
 # Cleans the windows
