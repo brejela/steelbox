@@ -48,3 +48,6 @@
     · Added confirmation dialog for modification of passwords
 - 1.2
     · Added search function
+- 1.21
+    · Fixed bug when modifying copied passwords
+    · Minor changes to the MANUAL

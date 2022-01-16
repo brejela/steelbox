@@ -343,7 +343,7 @@ def newFile():
                 pSize = 45
             passPswd = randString(pSize)
         # wtf = write to file
-        wtf = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
+        wtf = {'service' : passService[:45], 'user' : passUser[:45], 'pswd' : passPswd[:45]}
         files.append(wtf)
         with open(PASFILE, mode='w') as pasfile:
             csvwriter = csv.DictWriter(pasfile, fields)
@@ -450,7 +450,7 @@ def modFile():
             if pSize > 45:
                 pSize = 45
             passPswd = randString(pSize)
-    modFile = {'service' : passService, 'user' : passUser, 'pswd' : passPswd}
+    modFile = {'service' : passService[:45], 'user' : passUser[:45], 'pswd' : passPswd[:45]}
     # This is just a copy of delfile's confirmation routine
     dlWin = curses.newwin(3, 22, int(TERM_LINES/2), int(TERM_COLS/2))
     dlWin.border()
