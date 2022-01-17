@@ -25,3 +25,16 @@ Also for clipboard support, you need [xclip](https://github.com/astrand/xclip) o
 This program has no support for the wayland clipboard... Unless pyperclip starts supporting it :P
 
 The standard ( this program was made with v3.10 ) python installation comes with the `curses` and `csv` modules, just make sure you have [GnuPG](https://gnupg.org/) installed.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published
+by the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PUR-
+POSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Founda-
+tion, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+USA.
