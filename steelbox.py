@@ -23,7 +23,7 @@ import os
 import pyperclip as pc
 import random
 
-version = sys.argv[1]
+version = "v122"
 
 ## Initialization of bottomline dependencies
 
@@ -37,7 +37,7 @@ fields = ["service", "user", "pswd"]
 
 # Password file
 HOMEDIR = os.environ['HOME']
-PASFILE=HOMEDIR+"/.pasfile.csv"
+PASFILE="pasfile.csv"
 
 def reloadFiles():
     global SQUERY
@@ -120,6 +120,8 @@ def displayItems():
     NROWS = 0
     global highOpt
     highOpt = ()
+    global SCREEN_POPULATION
+    SCREEN_POPULATION = 0
     # Defines what to display
     startDisplay = (CURR_PAGE-1)*MAX_ITEMS
     stopDisplay = CURR_PAGE*MAX_ITEMS
@@ -134,6 +136,7 @@ def displayItems():
         mainwin.addstr(1 + LINE, 1 + COLUMN, item, mode)
         LINE+=1
         currItem+=1
+        SCREEN_POPULATION+=1
         if LINE >= WINLIMIT:
             LINE = 0
             COLUMN+=16
@@ -194,14 +197,20 @@ def globals():
     # What row the cursor is in
     global CUROW
     CUROW = 0
+    # Name of password's service
     global PSERV
     PSERV = ""
+    # Password's user
     global PUSER
     PUSER = ""
+    # Password
     global PPSWD
     PPSWD = ""
+    # Search query
     global SQUERY
     SQUERY = ""
+    # How many items are in the screen (Maximum being MAX_ITEMS)
+    global SCREEN_POPULATION
 
 # This makes sure that if anyone resizes the terminal window, it won't be smaller than the maximum size
 def termGlobals():
@@ -257,11 +266,18 @@ def command():
             CUROW-=1
     elif c == curses.KEY_F1 or c == curses.KEY_PPAGE:
         # The next two IF statements are here to avoid unintended GLOBAL_CURSOR changes
+        if CURR_PAGE == 1:
+            GLOBAL_CURSOR = 0
+            ITEM_CURSOR = 0
         if CURR_PAGE > 1:
             CURR_PAGE-=1
             GLOBAL_CURSOR-=MAX_ITEMS
     elif c == curses.KEY_F2 or c == curses.KEY_NPAGE:
-        if CURR_PAGE < MAX_PAGES:
+        npage = CURR_PAGE+1
+        if npage > MAX_PAGES:
+            GLOBAL_CURSOR = SCREEN_POPULATION - 1
+            ITEM_CURSOR = SCREEN_POPULATION - 1
+        elif CURR_PAGE < MAX_PAGES:
             CURR_PAGE+=1
             GLOBAL_CURSOR+=MAX_ITEMS
     elif c == 10 or c == curses.KEY_ENTER or c == ord('e'):
