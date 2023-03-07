@@ -1,4 +1,7 @@
+# THIS REPO IS **NOT** UP-TO-DATE
+
 # This project is now hosted  [here](http://vps41059.publiccloud.com.br:3000/brejela/steelbox)
+
 # Steelbox
 ## Because sometimes you just want a password manager
 
